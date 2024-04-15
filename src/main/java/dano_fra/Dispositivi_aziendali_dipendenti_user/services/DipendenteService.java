@@ -6,6 +6,7 @@ import com.cloudinary.utils.ObjectUtils;
 import dano_fra.Dispositivi_aziendali_dipendenti_user.entities.Dipendente;
 import dano_fra.Dispositivi_aziendali_dipendenti_user.exceptions.NotFoundException;
 import dano_fra.Dispositivi_aziendali_dipendenti_user.payloads.DipendenteDTO;
+import dano_fra.Dispositivi_aziendali_dipendenti_user.payloads.DipendenteResponseDTO;
 import dano_fra.Dispositivi_aziendali_dipendenti_user.repositories.DipendenteDAO;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ public class DipendenteService {
     @Autowired
     private Cloudinary cloudinary;
 
-    public Dipendente save(DipendenteDTO newDipendente) throws BadRequestException {
+    public DipendenteResponseDTO save(DipendenteDTO newDipendente) throws BadRequestException {
         Optional<Dipendente> existingDipendente = this.dipendenteDAO.findByEmail(newDipendente.email());
         if (existingDipendente.isPresent()) {
             throw new BadRequestException("L'email " + newDipendente.email() + " è già in uso!");
@@ -36,8 +37,10 @@ public class DipendenteService {
         dipendente.setNome(newDipendente.nome());
         dipendente.setCognome(newDipendente.cognome());
         dipendente.setEmail(newDipendente.email());
+        dipendente.setPassword(newDipendente.password());
         dipendente.setAvatar("https://ui-avatars.com/api/?name=" + newDipendente.nome() + "+" + newDipendente.cognome());
-        return this.dipendenteDAO.save(dipendente);
+        dipendenteDAO.save(dipendente);
+        return new DipendenteResponseDTO(dipendente.getEmail());
     }
 
     public Page<Dipendente> getDipendente(int page, int size, String sortBy) {
@@ -76,5 +79,9 @@ public class DipendenteService {
         dipendente.setAvatar(this.upload(image));
         this.dipendenteDAO.save(dipendente);
         return dipendente;
+    }
+
+    public Dipendente findByEmail(String email) {
+        return dipendenteDAO.findByEmail(email).orElseThrow(() -> new NotFoundException("Utente con email " + email + " non trovato!"));
     }
 }
