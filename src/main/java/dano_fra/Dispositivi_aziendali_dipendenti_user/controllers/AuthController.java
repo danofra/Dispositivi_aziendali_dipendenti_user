@@ -30,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public DipendenteResponseDTO saveDipendente(@RequestBody @Validated DipendenteDTO body, BindingResult result) throws org.apache.coyote.BadRequestException {
+    public DipendenteResponseDTO saveDipendente(@RequestBody @Validated DipendenteDTO body, BindingResult result) {
         if (result.hasErrors()) {
             throw new BadRequestException(result.getAllErrors());
         }

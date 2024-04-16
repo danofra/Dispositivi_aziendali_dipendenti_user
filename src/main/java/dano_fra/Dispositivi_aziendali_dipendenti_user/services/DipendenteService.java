@@ -4,16 +4,18 @@ package dano_fra.Dispositivi_aziendali_dipendenti_user.services;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import dano_fra.Dispositivi_aziendali_dipendenti_user.entities.Dipendente;
+import dano_fra.Dispositivi_aziendali_dipendenti_user.enums.ruolo;
+import dano_fra.Dispositivi_aziendali_dipendenti_user.exceptions.BadRequestException;
 import dano_fra.Dispositivi_aziendali_dipendenti_user.exceptions.NotFoundException;
 import dano_fra.Dispositivi_aziendali_dipendenti_user.payloads.DipendenteDTO;
 import dano_fra.Dispositivi_aziendali_dipendenti_user.payloads.DipendenteResponseDTO;
 import dano_fra.Dispositivi_aziendali_dipendenti_user.repositories.DipendenteDAO;
-import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +28,8 @@ public class DipendenteService {
     private DipendenteDAO dipendenteDAO;
     @Autowired
     private Cloudinary cloudinary;
+    @Autowired
+    private PasswordEncoder bcrypt;
 
     public DipendenteResponseDTO save(DipendenteDTO newDipendente) throws BadRequestException {
         Optional<Dipendente> existingDipendente = this.dipendenteDAO.findByEmail(newDipendente.email());
@@ -37,8 +41,9 @@ public class DipendenteService {
         dipendente.setNome(newDipendente.nome());
         dipendente.setCognome(newDipendente.cognome());
         dipendente.setEmail(newDipendente.email());
-        dipendente.setPassword(newDipendente.password());
+        dipendente.setPassword(bcrypt.encode(newDipendente.password()));
         dipendente.setAvatar("https://ui-avatars.com/api/?name=" + newDipendente.nome() + "+" + newDipendente.cognome());
+        dipendente.setRuoloAuthor(ruolo.USER);
         dipendenteDAO.save(dipendente);
         return new DipendenteResponseDTO(dipendente.getEmail());
     }
